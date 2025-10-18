@@ -2,9 +2,6 @@ import React, { useState, useRef } from 'react';
 import { transcribeAudioFile, analyzeCallTranscript } from '../services/geminiService';
 import { AnalysisResult } from '../types';
 import Loader from './Loader';
-import { sampleTranscripts } from '../data/samples';
-
-const sampleTranscript = sampleTranscripts[0];
 
 interface CallAnalysisFormProps {
   onAnalysisComplete: (result: AnalysisResult) => void;
@@ -147,12 +144,6 @@ const CallAnalysisForm: React.FC<CallAnalysisFormProps> = ({ onAnalysisComplete 
     setIsLoading(false);
     setLoadingMessage('נתח תמלול');
   };
-  
-  const loadSample = () => {
-    setTranscript(sampleTranscript);
-    clearAudioFile();
-    setError(null);
-  };
 
   return (
     <div className="bg-brand-card/70 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-brand-border">
@@ -257,14 +248,6 @@ const CallAnalysisForm: React.FC<CallAnalysisFormProps> = ({ onAnalysisComplete 
             className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:from-indigo-600 hover:to-purple-700 disabled:bg-slate-600 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-500/20 flex justify-center items-center active:scale-95"
           >
             {isLoading ? <><Loader /> <span className="mr-2">{loadingMessage}</span></> : 'נתח'}
-          </button>
-           <button
-            type="button"
-            onClick={loadSample}
-            disabled={isLoading || isRecording}
-            className="w-full bg-white/10 text-slate-300 font-semibold py-2.5 px-4 rounded-lg hover:bg-white/20 disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors border border-brand-border"
-          >
-            טען דוגמה
           </button>
         </div>
       </form>
