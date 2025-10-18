@@ -47,25 +47,34 @@ const SummaryLengthChart: React.FC<SummaryLengthChartProps> = ({ data }) => {
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
-      <h3 className="text-xl font-semibold text-slate-700 mb-4">התפלגות אורך סיכומים (במילים)</h3>
+    <div className="bg-brand-card/70 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-brand-border">
+      <h3 className="text-xl font-semibold text-slate-100 mb-4">התפלגות אורך סיכומים (במילים)</h3>
       <div style={{ direction: 'ltr' }}>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#475569' }} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#475569' }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
             <Tooltip
-              cursor={{ fill: 'rgba(71, 85, 105, 0.1)' }}
+              cursor={{ fill: 'rgba(124, 58, 237, 0.1)' }}
               contentStyle={{
-                backgroundColor: '#ffffff',
-                border: '1px solid #e2e8f0',
+                backgroundColor: 'rgba(15, 23, 42, 0.8)', // slate-900 with opacity
+                backdropFilter: 'blur(4px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '0.5rem',
                 direction: 'rtl',
+                color: '#cbd5e1' // slate-300
               }}
+              labelStyle={{ color: '#ffffff' }}
             />
-            <Legend wrapperStyle={{ fontSize: '14px', color: '#475569', paddingTop: '10px' }} />
-            <Bar dataKey="מספר סיכומים" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+            <Legend wrapperStyle={{ fontSize: '14px', color: '#94a3b8', paddingTop: '10px' }} />
+            <Bar dataKey="מספר סיכומים" fill="url(#colorUv)" radius={[4, 4, 0, 0]} />
+             <defs>
+              <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.8}/>
+              </linearGradient>
+            </defs>
           </BarChart>
         </ResponsiveContainer>
       </div>

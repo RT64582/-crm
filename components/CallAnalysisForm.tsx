@@ -155,17 +155,17 @@ const CallAnalysisForm: React.FC<CallAnalysisFormProps> = ({ onAnalysisComplete 
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
-      <h2 className="text-xl font-semibold mb-4 text-slate-700">ניתוח שיחה חדשה</h2>
+    <div className="bg-brand-card/70 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-brand-border">
+      <h2 className="text-xl font-semibold mb-4 text-slate-100">ניתוח שיחה חדשה</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label htmlFor="transcript" className="block text-sm font-medium text-slate-600 mb-2">
+          <label htmlFor="transcript" className="block text-sm font-medium text-slate-400 mb-2">
             הדבק כאן את תמלול השיחה
           </label>
           <textarea
             id="transcript"
             rows={8}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow shadow-inner bg-slate-50 text-sm disabled:bg-slate-200 disabled:cursor-not-allowed"
+            className="w-full p-3 border border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow shadow-inner bg-slate-900/50 text-sm text-slate-200 placeholder-slate-500 disabled:bg-slate-700 disabled:cursor-not-allowed"
             placeholder="[נציג]: שלום, איך אוכל לעזור?&#10;[לקוח]: שלום, יש לי שאלה על..."
             value={transcript}
             onChange={(e) => {
@@ -179,19 +179,19 @@ const CallAnalysisForm: React.FC<CallAnalysisFormProps> = ({ onAnalysisComplete 
 
         <div className="relative my-4">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t border-slate-300" />
+                <div className="w-full border-t border-slate-700" />
             </div>
             <div className="relative flex justify-center">
-                <span className="bg-white px-2 text-sm text-slate-500">או</span>
+                <span className="bg-brand-card/70 px-2 text-sm text-slate-500">או</span>
             </div>
         </div>
 
         <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-600 mb-2">
+            <label className="block text-sm font-medium text-slate-400 mb-2">
                 העלה קובץ שמע או הקלט
             </label>
             <div className="flex items-stretch gap-3">
-                 <label htmlFor="audio-upload" className={`cursor-pointer bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex-grow text-center ${isLoading || isRecording ? 'cursor-not-allowed bg-slate-200' : ''}`}>
+                 <label htmlFor="audio-upload" className={`cursor-pointer bg-white/5 border border-brand-border rounded-lg px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/10 transition-colors flex-grow text-center ${isLoading || isRecording ? 'cursor-not-allowed bg-slate-700' : ''}`}>
                     {audioFile && !audioFile.name.startsWith('recording-') ? 'החלף קובץ' : 'בחר קובץ'}
                  </label>
                  <input
@@ -209,14 +209,14 @@ const CallAnalysisForm: React.FC<CallAnalysisFormProps> = ({ onAnalysisComplete 
                   className={`flex items-center justify-center px-4 py-2 border rounded-lg font-semibold text-sm transition-colors w-36 ${
                     isRecording 
                     ? 'bg-red-500 text-white border-red-600 hover:bg-red-600' 
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50 disabled:bg-slate-200 disabled:cursor-not-allowed'
+                    : 'bg-white/5 text-slate-300 border-brand-border hover:bg-white/10 disabled:bg-slate-700 disabled:cursor-not-allowed'
                   }`}
                  >
                   {isRecording ? <><StopIcon /><span className="mr-2">הפסק</span></> : <><MicIcon /><span className="mr-2">הקלט</span></>}
                  </button>
             </div>
             {isRecording && (
-                <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                <div className="flex items-center gap-2 mt-2 text-sm text-red-400">
                     <span className="relative flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
@@ -226,8 +226,8 @@ const CallAnalysisForm: React.FC<CallAnalysisFormProps> = ({ onAnalysisComplete 
             )}
             {audioFile && (
                 <div className="flex items-center gap-2 overflow-hidden mt-2">
-                    <span className="text-sm text-slate-600 truncate" title={audioFile.name}>{audioFile.name}</span>
-                    <button type="button" onClick={clearAudioFile} disabled={isLoading} className="text-red-500 hover:text-red-700 font-bold text-lg flex-shrink-0" aria-label="נקה קובץ">&times;</button>
+                    <span className="text-sm text-slate-400 truncate" title={audioFile.name}>{audioFile.name}</span>
+                    <button type="button" onClick={clearAudioFile} disabled={isLoading} className="text-red-500 hover:text-red-400 font-bold text-lg flex-shrink-0" aria-label="נקה קובץ">&times;</button>
                 </div>
             )}
              <p className="text-xs text-slate-500 mt-2">
@@ -237,10 +237,10 @@ const CallAnalysisForm: React.FC<CallAnalysisFormProps> = ({ onAnalysisComplete 
 
 
         {error && (
-            <div className="bg-red-50 border-r-4 border-red-400 text-red-800 p-4 my-3 rounded-l-lg" role="alert">
+            <div className="bg-red-500/10 border-r-4 border-red-500 text-red-300 p-4 my-3 rounded-l-lg" role="alert">
                 <div className="flex items-start">
                     <div className="flex-shrink-0 pt-0.5">
-                       <svg className="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                       <svg className="fill-current h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                            <path d="M10 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zM9 9a1 1 0 0 0 2 0V7a1 1 0 1 0-2 0v2zm0 4a1 1 0 1 0 2 0 1 1 0 0 0-2 0z"/>
                        </svg>
                     </div>
@@ -254,7 +254,7 @@ const CallAnalysisForm: React.FC<CallAnalysisFormProps> = ({ onAnalysisComplete 
           <button
             type="submit"
             disabled={isLoading || isRecording || (!transcript.trim() && !audioFile)}
-            className="w-full bg-indigo-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors shadow-sm flex justify-center items-center"
+            className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:from-indigo-600 hover:to-purple-700 disabled:bg-slate-600 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-500/20 flex justify-center items-center active:scale-95"
           >
             {isLoading ? <><Loader /> <span className="mr-2">{loadingMessage}</span></> : 'נתח'}
           </button>
@@ -262,7 +262,7 @@ const CallAnalysisForm: React.FC<CallAnalysisFormProps> = ({ onAnalysisComplete 
             type="button"
             onClick={loadSample}
             disabled={isLoading || isRecording}
-            className="w-full bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-lg hover:bg-slate-300 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors border border-slate-300"
+            className="w-full bg-white/10 text-slate-300 font-semibold py-2.5 px-4 rounded-lg hover:bg-white/20 disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors border border-brand-border"
           >
             טען דוגמה
           </button>

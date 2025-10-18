@@ -122,6 +122,7 @@ export async function analyzeCallTranscript(transcript: string): Promise<Analysi
             id: crypto.randomUUID(),
             originalTranscript: transcript,
             timestamp: new Date().toISOString(),
+            isSyncedToCRM: false,
         };
     } catch (parseError) {
         console.error("Error parsing AI response:", parseError, "\nRaw text received:", jsonText);
@@ -131,6 +132,7 @@ export async function analyzeCallTranscript(transcript: string): Promise<Analysi
             Message: "שירות ה-AI החזיר תשובה בפורמט לא תקין. ייתכן שהתמלול לא היה ברור מספיק. נסה שוב או שנה את הקלט.",
             originalTranscript: transcript,
             timestamp: new Date().toISOString(),
+            isSyncedToCRM: false,
         };
     }
 
@@ -146,6 +148,7 @@ export async function analyzeCallTranscript(transcript: string): Promise<Analysi
       Message: userMessage,
       originalTranscript: transcript,
       timestamp: new Date().toISOString(),
+      isSyncedToCRM: false,
     };
   }
 }

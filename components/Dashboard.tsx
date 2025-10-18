@@ -8,6 +8,7 @@ import SummaryLengthChart from './SummaryLengthChart';
 interface DashboardProps {
   results: AnalysisResult[];
   onClearHistory: () => void;
+  onDeleteResult: (id: string) => void;
 }
 
 const ChartBarIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>);
@@ -17,11 +18,13 @@ const DownloadIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h
 const TrashIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>);
 
 
-const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory }) => {
+const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory, onDeleteResult }) => {
   const [selectedCall, setSelectedCall] = useState<AnalysisResult | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'Completed' | 'Error'>('all');
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
   const [isClearConfirmVisible, setIsClearConfirmVisible] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<AnalysisResult | null>(null);
+
 
   const unfilteredSuccessfulAnalyses = useMemo(() => results.filter(r => r.AnalysisStatus === 'Completed'), [results]);
 
@@ -29,14 +32,15 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory }) => {
     const totalCalls = unfilteredSuccessfulAnalyses.length;
     if (totalCalls === 0) {
       return {
-        avgEmotionScore: 'N/A',
+        avgEmotionScoreDisplay: 'N/A',
+        avgEmotionScoreValue: null,
         criticalActions: 0,
         totalActions: 0,
       };
     }
 
     const totalEmotionScore = unfilteredSuccessfulAnalyses.reduce((sum, r) => sum + (r.EmotionScore?.Score || 0), 0);
-    const avgEmotionScore = (totalEmotionScore / totalCalls).toFixed(1);
+    const avgEmotionScoreValue = (totalEmotionScore / totalCalls);
 
     const criticalActions = unfilteredSuccessfulAnalyses.reduce((count, r) =>
       count + (r.ActionItems?.filter(item => item.Urgency === 'קריטי').length || 0),
@@ -45,7 +49,8 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory }) => {
     const totalActions = unfilteredSuccessfulAnalyses.reduce((count, r) => count + (r.ActionItems?.length || 0), 0);
 
     return {
-      avgEmotionScore,
+      avgEmotionScoreDisplay: avgEmotionScoreValue.toFixed(1),
+      avgEmotionScoreValue: avgEmotionScoreValue,
       criticalActions,
       totalActions
     };
@@ -139,19 +144,27 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory }) => {
     setDateRange({ start: '', end: '' });
   };
 
-  const handleConfirmClear = () => {
+  const handleConfirmClearHistory = () => {
     onClearHistory();
     setIsClearConfirmVisible(false);
   };
+
+  const handleConfirmDelete = () => {
+    if (recordToDelete) {
+      onDeleteResult(recordToDelete.id);
+      setRecordToDelete(null);
+    }
+  };
+
 
   const isAnyFilterActive = statusFilter !== 'all' || dateRange.start !== '' || dateRange.end !== '';
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-slate-800 mb-4">לוח בקרה</h2>
+        <h2 className="text-2xl font-bold text-slate-100 mb-4">לוח בקרה</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <KPICard title="ציון רגש ממוצע" value={kpiData.avgEmotionScore} icon={<ChartBarIcon />} />
+            <KPICard title="ציון רגש ממוצע" value={kpiData.avgEmotionScoreDisplay} gaugeValue={kpiData.avgEmotionScoreValue} type="gauge" icon={<ChartBarIcon />} />
             <KPICard title="משימות קריטיות" value={kpiData.criticalActions.toString()} icon={<AlertTriangleIcon />} />
             <KPICard title="סה״כ משימות" value={kpiData.totalActions.toString()} icon={<ListCheckIcon />} />
         </div>
@@ -159,14 +172,14 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory }) => {
 
       <SummaryLengthChart data={unfilteredSuccessfulAnalyses} />
 
-      <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+      <div className="bg-brand-card/70 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-brand-border">
          <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-            <h2 className="text-xl font-semibold text-slate-700">היסטוריית ניתוחים</h2>
+            <h2 className="text-xl font-semibold text-slate-100">היסטוריית ניתוחים</h2>
             <div className="flex items-center gap-2">
                 <button
                     onClick={handleExportCSV}
                     disabled={filteredResults.filter(r => r.AnalysisStatus === 'Completed').length === 0}
-                    className="bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2"
+                    className="bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 disabled:bg-slate-500 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2"
                     aria-label="יצא נתונים לקובץ CSV"
                 >
                     <DownloadIcon/> <span className="hidden sm:inline">יצא CSV</span>
@@ -174,7 +187,7 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory }) => {
                  <button
                     onClick={() => setIsClearConfirmVisible(true)}
                     disabled={results.length === 0}
-                    className="bg-red-50 text-red-700 font-semibold py-2 px-4 rounded-lg hover:bg-red-100 border border-red-200 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2"
+                    className="bg-red-900/50 text-red-300 font-semibold py-2 px-4 rounded-lg hover:bg-red-900/80 border border-red-500/30 disabled:bg-slate-700 disabled:text-slate-500 disabled:border-slate-600 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2"
                     aria-label="נקה היסטוריה"
                 >
                     <TrashIcon/> <span className="hidden sm:inline">נקה</span>
@@ -183,14 +196,14 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory }) => {
         </div>
 
         {/* Filters Section */}
-        <div className="border-t border-b border-slate-200 py-4 mb-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="border-y border-brand-border py-4 mb-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
-                <label htmlFor="status-filter" className="block text-sm font-medium text-slate-600 mb-1">סנן לפי סטטוס</label>
+                <label htmlFor="status-filter" className="block text-sm font-medium text-slate-400 mb-1">סנן לפי סטטוס</label>
                 <select 
                     id="status-filter" 
                     value={statusFilter} 
                     onChange={e => setStatusFilter(e.target.value as 'all' | 'Completed' | 'Error')}
-                    className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white"
+                    className="w-full p-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-slate-900/50 text-slate-200"
                 >
                     <option value="all">הכל</option>
                     <option value="Completed">הושלם</option>
@@ -198,29 +211,29 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory }) => {
                 </select>
             </div>
              <div>
-                <label htmlFor="start-date" className="block text-sm font-medium text-slate-600 mb-1">מתאריך</label>
+                <label htmlFor="start-date" className="block text-sm font-medium text-slate-400 mb-1">מתאריך</label>
                 <input 
                     type="date" 
                     id="start-date"
                     value={dateRange.start}
                     onChange={e => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                    className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white"
+                    className="w-full p-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-slate-900/50 text-slate-200"
                 />
             </div>
             <div>
-                <label htmlFor="end-date" className="block text-sm font-medium text-slate-600 mb-1">עד תאריך</label>
+                <label htmlFor="end-date" className="block text-sm font-medium text-slate-400 mb-1">עד תאריך</label>
                 <input 
                     type="date" 
                     id="end-date"
                     value={dateRange.end}
                     onChange={e => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                    className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white"
+                    className="w-full p-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-slate-900/50 text-slate-200"
                 />
             </div>
             <button
                 onClick={handleClearFilters}
                 disabled={!isAnyFilterActive}
-                className="w-full bg-slate-100 text-slate-700 font-semibold py-2 px-4 rounded-lg hover:bg-slate-200 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors border border-slate-300 text-sm"
+                className="w-full bg-white/10 text-slate-300 font-semibold py-2 px-4 rounded-lg hover:bg-white/20 disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors border border-brand-border text-sm"
             >
                 נקה סינונים
             </button>
@@ -228,43 +241,48 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory }) => {
 
         {results.length === 0 ? (
           <div className="text-center py-12">
-             <div className="inline-block bg-slate-200 rounded-full p-4">
+             <div className="inline-block bg-white/5 rounded-full p-4 border-2 border-brand-border">
                  <svg className="w-10 h-10 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
              </div>
-             <p className="text-slate-500 mt-4 font-semibold">טרם נותחו שיחות.</p>
-             <p className="text-slate-400 text-sm">השתמש בטופס בצד כדי להתחיל.</p>
+             <p className="text-slate-400 mt-4 font-semibold">טרם נותחו שיחות.</p>
+             <p className="text-slate-500 text-sm">השתמש בטופס בצד כדי להתחיל.</p>
           </div>
         ) : filteredResults.length === 0 ? (
-          <p className="text-slate-500 text-center py-8">לא נמצאו תוצאות התואמות את הסינון הנוכחי.</p>
+          <p className="text-slate-400 text-center py-8">לא נמצאו תוצאות התואמות את הסינון הנוכחי.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50">
+            <table className="min-w-full divide-y divide-slate-700">
+              <thead className="bg-white/5">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">תאריך ושעה</th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">סטטוס</th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">ציון רגש</th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">משימות</th>
-                  <th scope="col" className="relative px-6 py-3"><span className="sr-only">צפה</span></th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">תאריך ושעה</th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">סטטוס</th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">ציון רגש</th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">משימות</th>
+                  <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">פעולות</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-800">
                 {filteredResults.map((result) => (
-                  <tr key={result.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{new Date(result.timestamp).toLocaleString('he-IL')}</td>
+                  <tr key={result.id} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">{new Date(result.timestamp).toLocaleString('he-IL')}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        result.AnalysisStatus === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        result.AnalysisStatus === 'Completed' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
                       }`}>
                         {result.AnalysisStatus === 'Completed' ? 'הושלם' : 'נכשל'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-semibold">{result.EmotionScore?.Score ?? 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-semibold">{result.ActionItems?.length ?? 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                      <button onClick={() => setSelectedCall(result)} className="text-indigo-600 hover:text-indigo-800 font-semibold">
-                        צפה בפרטים
-                      </button>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200 font-semibold">{result.EmotionScore?.Score ?? 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200 font-semibold">{result.ActionItems?.length ?? 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center justify-center gap-4">
+                            <button onClick={() => setSelectedCall(result)} className="text-indigo-400 hover:text-indigo-300 font-semibold">
+                                צפה
+                            </button>
+                            <button onClick={() => setRecordToDelete(result)} className="text-slate-400 hover:text-red-400 transition-colors" aria-label={`מחק ניתוח מתאריך ${new Date(result.timestamp).toLocaleString('he-IL')}`}>
+                                <TrashIcon />
+                            </button>
+                        </div>
                     </td>
                   </tr>
                 ))}
@@ -281,8 +299,16 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onClearHistory }) => {
         <ConfirmationModal
           title="אישור מחיקת היסטוריה"
           message="האם אתה בטוח שברצונך למחוק את כל היסטוריית הניתוחים? פעולה זו אינה הפיכה."
-          onConfirm={handleConfirmClear}
+          onConfirm={handleConfirmClearHistory}
           onCancel={() => setIsClearConfirmVisible(false)}
+        />
+      )}
+      {recordToDelete && (
+        <ConfirmationModal
+          title="אישור מחיקת ניתוח"
+          message={`האם אתה בטוח שברצונך למחוק את הניתוח מתאריך ${new Date(recordToDelete.timestamp).toLocaleString('he-IL')}? פעולה זו אינה הפיכה.`}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setRecordToDelete(null)}
         />
       )}
     </div>
